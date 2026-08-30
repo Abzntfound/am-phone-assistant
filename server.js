@@ -22,7 +22,7 @@ app.get("/", (req, res) => {
 // VONAGE ANSWER WEBHOOK
 // --------------------------------------------------
 
-app.post("/answer", (req, res) => {
+app.get("/answer", (req, res) => {
   console.log("📞 Incoming call");
   console.log("Vonage call data:", req.body);
 
@@ -50,9 +50,9 @@ app.post("/answer", (req, res) => {
 // VONAGE EVENT WEBHOOK
 // --------------------------------------------------
 
-app.post("/event", (req, res) => {
+app.all("/event", (req, res) => {
   console.log("📡 Vonage event:");
-  console.log(req.body);
+  console.log(req.body || req.query);
 
   res.sendStatus(200);
 });

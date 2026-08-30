@@ -1,3 +1,4 @@
+javascript
 const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
@@ -7,14 +8,59 @@ const server = http.createServer(app);
 
 const PORT = process.env.PORT || 3000;
 
-// Normal HTTP test
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// --------------------------------------------------
+// NORMAL HTTP TEST
+// --------------------------------------------------
+
 app.get("/", (req, res) => {
   res.send("AI Assistant Server is online ✅");
 });
 
-// -------------------------------
+// --------------------------------------------------
+// VONAGE ANSWER WEBHOOK
+// --------------------------------------------------
+
+app.post("/answer", (req, res) => {
+  console.log("📞 Incoming call");
+  console.log("Vonage call data:", req.body);
+
+  const ncco = [
+    {
+      action: "talk",
+      text: "Hello! How can I help you today?"
+    },
+    {
+      action: "connect",
+      endpoint: [
+        {
+          type: "websocket",
+          uri: `wss://${req.get("host")}/ws`,
+          "content-type": "audio/l16;rate=16000"
+        }
+      ]
+    }
+  ];
+
+  res.json(ncco);
+});
+
+// --------------------------------------------------
+// VONAGE EVENT WEBHOOK
+// --------------------------------------------------
+
+app.post("/event", (req, res) => {
+  console.log("📡 Vonage event:");
+  console.log(req.body);
+
+  res.sendStatus(200);
+});
+
+// --------------------------------------------------
 // FIXED RESPONSES
-// -------------------------------
+// --------------------------------------------------
 
 function getResponse(text) {
   text = text.toLowerCase();
@@ -62,9 +108,9 @@ function getResponse(text) {
   return "Sorry, I didn't understand that. Could you please say that again?";
 }
 
-// -------------------------------
+// --------------------------------------------------
 // WEBSOCKET
-// -------------------------------
+// --------------------------------------------------
 
 const wss = new WebSocket.Server({
   server,
@@ -72,20 +118,19 @@ const wss = new WebSocket.Server({
 });
 
 wss.on("connection", (ws) => {
+  console.log("🟢 Vonage WebSocket connected");
 
-  console.log("🟢 WebSocket connected");
+  ws.on("message", (data, isBinary) => {
 
-  // Send a welcome message
-  ws.send(JSON.stringify({
-    type: "welcome",
-    text: "Hello! How can I help you today?"
-  }));
-
-  ws.on("message", (data) => {
+    // Real phone calls send AUDIO as binary data.
+    if (isBinary) {
+      console.log(`🎤 Received ${data.length} bytes of call audio`);
+      return;
+    }
 
     const raw = data.toString();
 
-    console.log("Received:", raw);
+    console.log("Received WebSocket message:", raw);
 
     let message;
 
@@ -127,10 +172,11 @@ wss.on("connection", (ws) => {
   });
 });
 
-// -------------------------------
+// --------------------------------------------------
 // START SERVER
-// -------------------------------
+// --------------------------------------------------
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+

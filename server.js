@@ -24,7 +24,15 @@ app.get("/", (req, res) => {
 
 app.get("/answer", (req, res) => {
   console.log("📞 Incoming call");
-  console.log("Vonage call data:", req.body);
+
+  console.log("QUERY:");
+  console.log(req.query);
+
+  console.log("HEADERS:");
+  console.log(req.headers);
+
+  console.log("URL:");
+  console.log(req.originalUrl);
 
   const ncco = [
     {
@@ -43,7 +51,7 @@ app.get("/answer", (req, res) => {
     }
   ];
 
-  res.json(ncco);
+  res.status(200).json(ncco);
 });
 
 // --------------------------------------------------

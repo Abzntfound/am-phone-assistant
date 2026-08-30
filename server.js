@@ -24,34 +24,14 @@ app.get("/", (req, res) => {
 
 app.get("/answer", (req, res) => {
   console.log("📞 Incoming call");
+  console.log("Vonage data:", req.query);
 
-  console.log("QUERY:");
-  console.log(req.query);
-
-  console.log("HEADERS:");
-  console.log(req.headers);
-
-  console.log("URL:");
-  console.log(req.originalUrl);
-
-  const ncco = [
+  res.json([
     {
       action: "talk",
-      text: "Hello! How can I help you today?"
-    },
-    {
-      action: "connect",
-      endpoint: [
-        {
-          type: "websocket",
-          uri: `wss://${req.get("host")}/ws`,
-          "content-type": "audio/l16;rate=16000"
-        }
-      ]
+      text: "Hello! Your AI phone assistant is working. Goodbye."
     }
-  ];
-
-  res.status(200).json(ncco);
+  ]);
 });
 
 // --------------------------------------------------
